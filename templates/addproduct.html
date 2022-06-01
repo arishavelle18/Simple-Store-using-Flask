@@ -1,0 +1,32 @@
+{% extends "layouts.html" %}
+
+{% block body %}
+    <div>
+       
+        <form action="/add_product" method="POST" enctype="multipart/form-data">
+            <div>
+                <Label>Product name:</Label>
+                <input type="text" name="name" value="{{request.form.name}}" required>
+            </div>
+            <div>
+                <Label>Product price: </Label>
+                <input type="number" name="price" value="{{request.form.price}}" required>
+            </div>
+            <div>
+                <Label>Choose a size: </Label>
+                <select name="size" id="">
+                    <option value="XS">Extra Small</option>
+                    <option value="S">Small</option>
+                    <option value="M">Medium</option>
+                    <option value="L">Large</option>
+                    <option value="XL">Extra Large</option>
+                    <option value="XXL">Extra Extra Large</option>
+                </select>
+            </div>
+            <div>
+                <input type="file" name="file" required>
+            </div>
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+{% endblock %}

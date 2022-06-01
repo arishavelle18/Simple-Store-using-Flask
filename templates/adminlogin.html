@@ -1,0 +1,18 @@
+{% extends "layouts.html" %}
+
+{% block body %}
+    <div>
+        <form action="/validate" method="POST">
+            <div>
+                <label for="">Email</label>
+                <input type="email" name="email" class="form-control" value="{{request.form.email}}">
+            </div>
+            <div>
+                <label for="">Password</label>
+                <input type="password" name="password" class="form-control" value="{{request.form.password}}">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+{% endblock%}

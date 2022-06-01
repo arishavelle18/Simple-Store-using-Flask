@@ -1,0 +1,35 @@
+{% extends "layouts.html"%}
+
+
+{% block body %}
+    <div>
+        <a href="/add_product">Add Product</a>
+        <div>
+            <h1>Products</h1>
+            <table>
+                <thead>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Size</th>
+                    <th></th>
+                    <th></th>
+                </thead>
+                <tbody>
+                    {% for data in data %}
+                    <tr>
+                        <td> <img src="../{{data['product_image']}}" alt="" width="200"></td>
+                        <td>{{data["product_name"]}}</td>
+                        <td>{{data["product_price"]}}</td>
+                        <td>{{data["product_size"]}}</td>
+                        <td><a href="#">Delete</a></td>
+                        <td><a href="#">Edit</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+{% endblock %}
