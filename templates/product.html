@@ -22,8 +22,8 @@
                         <td>{{data["product_name"]}}</td>
                         <td>{{data["product_price"]}}</td>
                         <td>{{data["product_size"]}}</td>
-                        <td><a href="#">Delete</a></td>
-                        <td><a href="#">Edit</a></td>
+                        <td><a href="/delete/{{data['id']}}">Delete</a></td>
+                        <td><a href="/edit/{{data['id']}}">Edit</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

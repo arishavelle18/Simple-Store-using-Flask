@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 01, 2022 at 09:28 PM
+-- Generation Time: Jun 02, 2022 at 08:49 PM
 -- Server version: 10.4.22-MariaDB
 -- PHP Version: 8.1.2
 
@@ -24,6 +24,30 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `orders`
+--
+
+CREATE TABLE `orders` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `address` varchar(255) NOT NULL,
+  `contact` int(15) NOT NULL,
+  `mode` varchar(10) NOT NULL,
+  `product_order` varchar(100) NOT NULL,
+  `size` varchar(10) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `type` enum('pending','trash','confirm','') NOT NULL DEFAULT 'pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `orders`
+--
+
+
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `product`
 --
 
@@ -39,10 +63,7 @@ CREATE TABLE `product` (
 -- Dumping data for table `product`
 --
 
-INSERT INTO `product` (`id`, `product_name`, `product_price`, `product_size`, `product_image`) VALUES
-(6, 'asdasdasd', 2321312, 'XS', 'static/files\\Untitled_Diagram.drawio_2.png'),
-(7, 'asdasdasd', 2321312, 'XS', 'static/files\\Untitled_Diagram.drawio_2.png'),
-(8, 'asdasd', 23233223, 'XS', 'static/files\\Villanueva_Quiz_2.png');
+
 
 -- --------------------------------------------------------
 
@@ -62,9 +83,16 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
+
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `product`
@@ -81,6 +109,12 @@ ALTER TABLE `users`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `product`

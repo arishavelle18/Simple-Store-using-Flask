@@ -15,10 +15,10 @@ app.config["MYSQL_PASSWORD"] = ''
 app.config["MYSQL_DB"] = 'store'
 app.config["MYSQL_CURSORCLASS"] = 'DictCursor'
 # mail
-app.config["MAIL_SERVER"] = ''
-app.config["MAIL_PORT"] = 
-app.config["MAIL_USERNAME"]=''
-app.config["MAIL_PASSWORD"] = ''
+app.config["MAIL_SERVER"] = 'smtp.gmail.com'
+app.config["MAIL_PORT"] = 465
+app.config["MAIL_USERNAME"]='thinklik123@gmail.com'
+app.config["MAIL_PASSWORD"] = 'thinklik123123123321'
 app.config['MAIL_USE_TLS'] = False
 app.config["MAIL_USE_SSL"] = True
 # for uploding file
@@ -108,9 +108,6 @@ def logout():
     flash('You are now logged out','success')
     return redirect(url_for('admin_login'))
 
-@app.get('/form')
-def order_form():
-    return render_template('order.html')
 
 @app.get("/product")
 def product():
@@ -155,6 +152,153 @@ def add_product():
             return redirect(url_for("product"))
 
     return render_template("addproduct.html")
+
+@app.get("/delete/<string:id>")
+def delete_product(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+
+        # get user by username
+    result = cur.execute("SELECT * FROM product WHERE id = %s",[id])
+    # check if yyou can delete it or not
+    if result > 0:
+        cur.execute("DELETE FROM product WHERE id = %s",[id])
+        mysql.connection.commit()
+        cur.close()
+        flash("Product is successfully deleted","success")
+        return redirect(url_for("product"))
+    else:
+        flash("Product is not found","danger")
+        return redirect(url_for("product"))
+        cur.close()
+
+@app.get("/edit/<string:id>")
+def edit_product(id):
+    cur = mysql.connection.cursor()
+        # get user by id
+    result = cur.execute("SELECT * FROM product WHERE id = %s",[id])
+      # check if yyou can delete it or not
+    if result > 0:
+        data = cur.fetchone()
+        cur.close()
+        return render_template("edit_product.html",data = data )
+    else:
+        flash("Product is not found","danger")
+        return redirect(url_for("product"))
+        cur.close()
+
+@app.post("/update/<string:id>")
+def update_product(id):
+     name = request.form["name"]
+     price = request.form["price"]
+     size = request.form["size"]
+     cur = mysql.connection.cursor()
+     cur.execute("UPDATE product SET product_name = %s,product_price = %s, product_size = %s WHERE id = %s",(name,price,size,id))
+     flash("Product is successfully update","success")
+     mysql.connection.commit()
+     cur.close()
+     return redirect(url_for("product"))
+     
+@app.get('/form')
+def form_buy():
+    cur = mysql.connection.cursor()
+    # get user by id
+    cur.execute("SELECT * FROM product")
+    data = cur.fetchall()
+    return render_template("buy.html",data = data)
+
+@app.post('/order_verify')
+def order_verify():
+    name = request.form['name']
+    address = request.form['address']
+    contact = request.form['contact']
+    mode = request.form['mode']
+    product_name = request.form['product_name']
+    size = request.form['size']
+    cur = mysql.connection.cursor()
+
+    result = cur.execute("SELECT * FROM product WHERE product_name = %s AND product_size = %s",(product_name,size))
+    
+    if result == 0 :
+        flash("Size is not available","danger")
+        return redirect(url_for("form_buy"))
+    if mode == "" or product_name == "" or size == "":
+        flash("Empty Field is not allowed","danger")
+        return redirect(url_for("form_buy"))
+
+    cur.execute("INSERT INTO orders(name,address,contact,mode,product_order,size) VALUES(%s,%s,%s,%s,%s,%s)",(name,address,contact,mode,product_name,size))
+
+    mysql.connection.commit()
+    # close the fucking connection
+    cur.close()
+    flash("Order Successfully","success")
+    return redirect(url_for("hehe"))
+
+@app.get("/pending")
+def pending_list():
+    cur = mysql.connection.cursor()
+    result = cur.execute("SELECT * FROM orders WHERE type = %s",["pending"])
+    if result > 0:
+        data = cur.fetchall()
+        cur.close()
+        return render_template("pending.html",data = data)
+    cur.close()
+    return render_template("pending.html")
+
+@app.get("/trash")
+def trash_list():
+    cur = mysql.connection.cursor()
+    result = cur.execute("SELECT * FROM orders WHERE type = %s",["trash"])
+    if result > 0:
+        data = cur.fetchall()
+        cur.close()
+        return render_template("trash.html",data = data)
+    cur.close()
+    return render_template("trash.html")
+
+@app.get("/confirm")
+def confirm_list():
+    cur = mysql.connection.cursor()
+    result = cur.execute("SELECT * FROM orders WHERE type = %s",["confirm"])
+    if result > 0:
+        data = cur.fetchall()
+        cur.close()
+        return render_template("confirm.html",data = data)
+    cur.close()
+    return render_template("confirm.html")
+
+@app.get("/change_list/<string:id>/<string:type>")
+def change_list(id,type):
+    cur = mysql.connection.cursor()
+        # get user by id
+    result = cur.execute("SELECT * FROM orders WHERE id = %s",[id])
+      # check if yyou can delete it or not
+    if result == 0:
+        flash("Failed to connect","danger")
+        return redirect(url_for("home"))
+    cur.execute("UPDATE orders SET type = %s WHERE id = %s",(type,id))
+    mysql.connection.commit()
+    cur.close()
+    return redirect(url_for(f"{type}_list"))
+
+@app.get("/delete_permanently/<string:id>")
+def delete_permanently(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+
+        # get user by username
+    result = cur.execute("SELECT * FROM orders WHERE id = %s",[id])
+    # check if yyou can delete it or not
+    if result > 0:
+        cur.execute("DELETE FROM orders WHERE id = %s",[id])
+        mysql.connection.commit()
+        cur.close()
+        flash("Order is successfully deleted","success")
+        return redirect(url_for("trash_list"))
+    else:
+        flash("Order is not found","danger")
+        return redirect(url_for("trash_list"))
+        cur.close()
 
 @app.get('/hehe')
 def hehe():
