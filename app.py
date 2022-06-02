@@ -15,10 +15,10 @@ app.config["MYSQL_PASSWORD"] = ''
 app.config["MYSQL_DB"] = 'store'
 app.config["MYSQL_CURSORCLASS"] = 'DictCursor'
 # mail
-app.config["MAIL_SERVER"] = 'smtp.gmail.com'
+app.config["MAIL_SERVER"] = ''
 app.config["MAIL_PORT"] = 465
-app.config["MAIL_USERNAME"]='thinklik123@gmail.com'
-app.config["MAIL_PASSWORD"] = 'thinklik123123123321'
+app.config["MAIL_USERNAME"]=''
+app.config["MAIL_PASSWORD"] = ''
 app.config['MAIL_USE_TLS'] = False
 app.config["MAIL_USE_SSL"] = True
 # for uploding file
