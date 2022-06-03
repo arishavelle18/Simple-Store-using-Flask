@@ -1,0 +1,52 @@
+{% extends "layouts.html" %}
+
+{% block body %}
+<div>
+    <form action="/order_verify" method="POST">
+        <div>
+            <Label>Name:</Label>
+            <input type="text" name="name" value="{{request.form.name}}" required>
+        </div>
+        <div>
+            <Label>Address:</Label>
+            <input type="text" name="address" value="{{request.form.address}}" required>
+        </div>
+        <div>
+            <Label>Contact Number:</Label>
+            <input type="number" name="contact" value="{{request.form.contact}}" required>
+        </div>
+        <div>
+            <Label>Mode of payment: </Label>
+            <select name="mode" id="">
+                <option value="">------</option>
+                <option value="COD">Cash on delivery</option>
+                <option value="PF">Pay First</option>
+            </select>
+        </div>
+        <div>
+            <Label>Choose the product: </Label>
+            <select name="product_name" id="">
+                <option value="">------</option>
+                {% for data in data %}
+                <option value="{{data['product_name']}}">{{data['product_name']}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <Label>Choose the Size: </Label>
+            <select name="size" id="">
+                <option value="">------</option>
+                <option value="XS">Extra Small</option>
+                <option value="S">Small</option>
+                <option value="M">Medium</option>
+                <option value="L">Large</option>
+                <option value="XL">Extra Large</option>
+                <option value="XXL">Extra Extra Large</option>
+            </select>
+        </div>
+        <input type="submit" value="Order now">
+    </form>
+</div>
+
+{% endblock %}
+

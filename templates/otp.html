@@ -1,0 +1,14 @@
+{% extends "layouts.html" %}
+
+{% block body %}
+<div>
+    <form action="/verify" method="POST">
+        <input type="hidden" name="email" value="{{data}}">
+        <div>
+            <input type="text" name="otp" value="{{request.form.otp}}">
+        </div>
+        <input type="submit" value="Submit">
+    </form>
+</div>
+
+{% endblock %}

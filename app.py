@@ -1,11 +1,15 @@
 
-from flask import Flask,render_template,request,flash,redirect,url_for,session,logging
+from ast import arg
+from flask import Flask,render_template,request,flash,redirect,url_for,session,logging,jsonify
 from flask_mysqldb import MySQL
 from passlib.hash import sha256_crypt
 from flask_mail import Mail,Message
 from forms import AddForm
 from werkzeug.utils import secure_filename
 import os 
+from chat import get_response
+from random import randint
+from functools import wraps
 
 app = Flask(__name__)
 
@@ -26,9 +30,21 @@ app.config["UPLOAD_FOLDER"]='static/files'
 
 mail = Mail(app)
 ALLOWED_EXTENSION = ["png","jpeg","jpg"]
-
+otp = randint(000000,999999)
 
 mysql = MySQL(app)
+
+# check if the user is logged in 
+def is_logged_in(f):
+    @wraps(f)
+    def wrap(*args,**kwargs):
+        if 'logged_in' in session:
+            return f(*args,**kwargs)
+        else:
+            flash('Unauthorized, Please login','danger')
+            return redirect(url_for('index_get'))
+    return wrap
+
 
 @app.get("/admin_login")
 def admin_login():
@@ -54,11 +70,18 @@ def login_validate():
 
         # compare passwords
         if password_candidate == password:
-            session['logged_in'] = True
-            session['email'] = email
+            # session['logged_in'] = True
+            # session['email'] = email
 
-            flash('You are now logged in','success')
-            return redirect(url_for('verify'))
+            # flash('You are now logged in','success')
+            # return redirect(url_for('verify'))
+            flash("We send code to your email to verify and proceed to the admin","success")
+            msg = Message(subject="Verification",sender="thinklik123@gmail.com",recipients=[email])
+            cur.execute("UPDATE users SET code = %s WHERE email = %s",(otp,email))
+            msg.body = f"Verification code is {otp}"
+            mysql.connection.commit()
+            cur.close()
+            return render_template('otp.html',data =email)
         else:
             error = 'Invalid Login'
             return render_template('adminlogin.html',error = error)
@@ -67,37 +90,36 @@ def login_validate():
         error = "Email not found"
         return render_template('adminlogin.html',error = error)
 
-@app.get('/verify')
-def verify():
-    flash("Please verify your email to process to the admin","success")
-    msg = Message(subject="Verification",sender="thinklik123@gmail.com",recipients=[session['email']])
-    msg.body = f"Verification link {request.url_root}verify/{session['email']}"
-    return render_template('adminlogin.html')
 
-@app.get('/verify/<string:email>')
-def check_email(email):
-    # Create cursor
+
+@app.post('/verify')
+def verify():
+    email = request.form["email"]
+    otp = request.form["otp"]
+           # Create cursor
     cur = mysql.connection.cursor()
 
-        # get user by username
-    result = cur.execute("SELECT * FROM users WHERE email = %s",[email])
-    if result > 0 :
-        # get stored hash
-        activate = 1
-        cur.execute("UPDATE users SET verified = %s WHERE email = %s",(activate,email))
-    else:
-        msg = 'No Data Found'
-        return msg
+    result = cur.execute("SELECT * FROM users WHERE email = %s AND code = %s",(email,otp))
+    if result == 0:
+        flash("Code is wrong please try again","danger")
+        return render_template('otp.html',data = email)
+    flash("Login successfully","success")
+    session['logged_in'] = True
+    session['email'] = email
+    activate = 1
+    cur.execute("UPDATE users SET verified = %s WHERE email = %s",(activate,email))
     mysql.connection.commit()
     cur.close()
-    flash('Your account is successfully verified','success')
-    return redirect(url_for('home'))
+    return redirect(url_for("home"))
+
 
 @app.get('/home')
+@is_logged_in
 def home():
     return render_template('home.html')
 
 @app.get("/logout")
+@is_logged_in
 def logout():
     cur = mysql.connection.cursor()
     deactivate = 0
@@ -110,6 +132,7 @@ def logout():
 
 
 @app.get("/product")
+@is_logged_in
 def product():
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM product")
@@ -122,6 +145,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSION
 
 @app.route("/add_product",methods=["GET","POST"])
+@is_logged_in
 def add_product():
     if request.method == "POST":
         # check if the post request has the file part
@@ -154,6 +178,7 @@ def add_product():
     return render_template("addproduct.html")
 
 @app.get("/delete/<string:id>")
+@is_logged_in
 def delete_product(id):
     # Create cursor
     cur = mysql.connection.cursor()
@@ -173,6 +198,7 @@ def delete_product(id):
         cur.close()
 
 @app.get("/edit/<string:id>")
+@is_logged_in
 def edit_product(id):
     cur = mysql.connection.cursor()
         # get user by id
@@ -232,9 +258,10 @@ def order_verify():
     # close the fucking connection
     cur.close()
     flash("Order Successfully","success")
-    return redirect(url_for("hehe"))
+    return redirect(url_for("index_get"))
 
 @app.get("/pending")
+@is_logged_in
 def pending_list():
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM orders WHERE type = %s",["pending"])
@@ -246,6 +273,7 @@ def pending_list():
     return render_template("pending.html")
 
 @app.get("/trash")
+@is_logged_in
 def trash_list():
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM orders WHERE type = %s",["trash"])
@@ -257,6 +285,7 @@ def trash_list():
     return render_template("trash.html")
 
 @app.get("/confirm")
+@is_logged_in
 def confirm_list():
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM orders WHERE type = %s",["confirm"])
@@ -268,6 +297,7 @@ def confirm_list():
     return render_template("confirm.html")
 
 @app.get("/change_list/<string:id>/<string:type>")
+@is_logged_in
 def change_list(id,type):
     cur = mysql.connection.cursor()
         # get user by id
@@ -282,6 +312,7 @@ def change_list(id,type):
     return redirect(url_for(f"{type}_list"))
 
 @app.get("/delete_permanently/<string:id>")
+@is_logged_in
 def delete_permanently(id):
     # Create cursor
     cur = mysql.connection.cursor()
@@ -300,9 +331,19 @@ def delete_permanently(id):
         return redirect(url_for("trash_list"))
         cur.close()
 
-@app.get('/hehe')
-def hehe():
-    return "pumasok"
+@app.get('/')
+def index_get():
+    return render_template("chat.html")
+
+
+@app.post("/predict")
+def predict():
+    text = request.form["message"]
+    # TODO : check if text is valid
+    response = get_response(text)
+    message = {"answer":response}
+    return jsonify(message)
+
 if __name__ == "__main__":
     app.secret_key = sha256_crypt.hash("Vinthrift")
     app.run(debug=True)
